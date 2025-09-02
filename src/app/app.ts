@@ -9,6 +9,7 @@ import { TodoListComponent } from './features/todos/components/todo-list.compone
   imports: [RouterOutlet, HeaderComponent, TodoListComponent],
   template: `
     <app-header></app-header>
+    <app-todo-list></app-todo-list>
     <main class="container mx-auto p-4">
       <router-outlet></router-outlet>
     </main>
