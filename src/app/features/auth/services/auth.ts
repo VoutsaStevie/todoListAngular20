@@ -1,4 +1,4 @@
-// src/app/features/auth/services/auth.service.ts
+// src/app/features/auth/services/auth.ts
 import { Injectable, signal } from '@angular/core';
 import { Observable, of, throwError, delay } from 'rxjs';
 import { User, LoginRequest, RegisterRequest } from '../models/user.model';
@@ -46,7 +46,6 @@ export class AuthService {
 
     if (user && password === credentials.password) {
       // Simuler un délai réseau
-      this.setCurrentUser(user); // Set the current user after successful login
       return of(user).pipe(delay(500));
     } else {
       return throwError(() => new Error('Email ou mot de passe incorrect'));
@@ -73,7 +72,6 @@ export class AuthService {
     this.passwords[userData.email] = userData.password;
 
     // Simuler un délai réseau
-    this.setCurrentUser(newUser); // Set the current user after successful registration
     return of(newUser).pipe(delay(500));
   }
 
@@ -86,28 +84,10 @@ export class AuthService {
     return this.currentUser();
   }
 
-  isLoggedIn(): boolean {
-    return !!this.currentUser();
-  }
-
-  // Cette méthode pourrait être utilisée par un guard ou un intercepteur
-  getToken(): string | null {
-    const user = this.currentUser();
-    return user ? `mock-token-${user.id}` : null;
-  }
-
-  // Méthode pour définir l'utilisateur connecté (utilisée après login/register)
-  private setCurrentUser(user: User): void {
-    this.currentUser.set(user);
-    localStorage.setItem('currentUser', JSON.stringify(user));
-  }
-
-  // Méthode pour obtenir tous les utilisateurs (pour l'interface admin)
   getAllUsers(): Observable<User[]> {
     return of(this.users).pipe(delay(300));
   }
 
-  // Méthode pour supprimer un utilisateur (pour l'interface admin)
   deleteUser(userId: number): Observable<void> {
     const index = this.users.findIndex(u => u.id === userId);
     if (index !== -1) {
@@ -115,5 +95,16 @@ export class AuthService {
       return of(void 0).pipe(delay(300));
     }
     return throwError(() => new Error('Utilisateur non trouvé'));
+  }
+
+  getToken(): string | null {
+    const user = this.currentUser();
+    return user ? `mock-token-${user.id}` : null;
+  }
+
+  // Méthode pour définir l'utilisateur connecté (utilisée après login)
+  setCurrentUser(user: User): void {
+    this.currentUser.set(user);
+    localStorage.setItem('currentUser', JSON.stringify(user));
   }
 }

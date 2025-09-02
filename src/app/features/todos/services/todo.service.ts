@@ -1,8 +1,8 @@
 import { Injectable, signal } from '@angular/core';
-import { Todo, CreateTodoRequest } from '../models/todo.model';
+import { CreateTodoRequest, Todo } from '../models/todo.model';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class TodoService {
   private todos = signal<Todo[]>([
@@ -14,7 +14,7 @@ export class TodoService {
       priority: 'high',
       createdBy: 1,
       createdAt: new Date('2024-01-15'),
-      updatedAt: new Date('2024-01-15')
+      updatedAt: new Date('2024-01-15'),
     },
     {
       id: 2,
@@ -24,7 +24,7 @@ export class TodoService {
       priority: 'medium',
       createdBy: 1,
       createdAt: new Date('2024-01-14'),
-      updatedAt: new Date('2024-01-16')
+      updatedAt: new Date('2024-01-16'),
     },
     {
       id: 3,
@@ -34,35 +34,35 @@ export class TodoService {
       priority: 'high',
       createdBy: 1,
       createdAt: new Date('2024-01-13'),
-      updatedAt: new Date('2024-01-14')
-    }
+      updatedAt: new Date('2024-01-14'),
+    },
   ]);
 
   // Simuler un délai réseau
   private delay(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   // GET - Récupérer tous les todos
   async getAllTodos(): Promise<Todo[]> {
-    console.log('🔄 Service: Récupération de tous les todos...');
+    console.warn('🔄 Service: Récupération de tous les todos...');
     await this.delay(300); // Simuler un appel API
-    console.log('✅ Service: Todos récupérés avec succès');
+    console.warn('✅ Service: Todos récupérés avec succès');
     return this.todos();
   }
 
   // GET - Récupérer un todo par ID
   async getTodoById(id: number): Promise<Todo | undefined> {
-    console.log(`🔄 Service: Récupération du todo ${id}...`);
+    console.warn(`🔄 Service: Récupération du todo ${id}...`);
     await this.delay(200);
-    const todo = this.todos().find(t => t.id === id);
-    console.log(`✅ Service: Todo ${id} récupéré:`, todo);
+    const todo = this.todos().find((t) => t.id === id);
+    console.warn(`✅ Service: Todo ${id} récupéré:`, todo);
     return todo;
   }
 
   // POST - Créer un nouveau todo
   async createTodo(todoData: CreateTodoRequest): Promise<Todo> {
-    console.log('🔄 Service: Création d\'un nouveau todo...', todoData);
+      console.warn('🔄 Service: Création d\'un nouveau todo...', todoData);
     await this.delay(400);
 
     const newTodo: Todo = {
@@ -74,10 +74,10 @@ export class TodoService {
       assignedTo: todoData.assignedTo,
       createdBy: 1, // TODO: Récupérer l'ID de l'utilisateur connecté
       createdAt: new Date(),
-      updatedAt: new Date()
+      updatedAt: new Date(),
     };
 
-    this.todos.update(todos => [...todos, newTodo]);
+    this.todos.update((todos) => [...todos, newTodo]);
     console.log('✅ Service: Todo créé avec succès:', newTodo);
     return newTodo;
   }
@@ -88,16 +88,18 @@ export class TodoService {
     await this.delay(300);
 
     let updatedTodo: Todo | undefined;
-    this.todos.update(todos =>   todos.map(todo => {
+    this.todos.update((todos) =>
+      todos.map((todo) => {
         if (todo.id === id) {
-          updatedTodo = {   ...todo,
+          updatedTodo = {
+            ...todo,
             ...updates,
-            updatedAt: new Date()
+            updatedAt: new Date(),
           };
           return updatedTodo;
         }
         return todo;
-      })
+      }),
     );
 
     console.log(`✅ Service: Todo ${id} mis à jour:`, updatedTodo);
@@ -110,9 +112,9 @@ export class TodoService {
     await this.delay(250);
 
     let deleted = false;
-    this.todos.update(todos => {
+    this.todos.update((todos) => {
       const initialLength = todos.length;
-      const filtered = todos.filter(todo => todo.id !== id);
+      const filtered = todos.filter((todo) => todo.id !== id);
       deleted = filtered.length < initialLength;
       return filtered;
     });
@@ -123,10 +125,10 @@ export class TodoService {
 
   // Méthodes utilitaires
   getTodosByStatus(status: Todo['status']): Todo[] {
-    return this.todos().filter(todo => todo.status === status);
+    return this.todos().filter((todo) => todo.status === status);
   }
 
   getTodosByPriority(priority: Todo['priority']): Todo[] {
-    return this.todos().filter(todo => todo.priority === priority);
+    return this.todos().filter((todo) => todo.priority === priority);
   }
 }
