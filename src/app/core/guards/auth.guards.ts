@@ -1,15 +1,27 @@
-// src/app/core/guards/auth.guards.ts
-import { CanActivateFn, Router } from '@angular/router';
+// src/app/core/guards/auth.guard.ts
 import { inject } from '@angular/core';
+import { CanActivateFn, Router } from '@angular/router';
 import { AuthService } from '../../features/auth/services/auth.service';
+import { map, take } from 'rxjs/operators';
+import { toObservable } from '@angular/core/rxjs-interop';
 
-export const authGuard: CanActivateFn = () => {
+
+export const authGuard: CanActivateFn = (route, state) => {
   const authService = inject(AuthService);
   const router = inject(Router);
 
-  if (authService.isLoggedIn()) {
-    return true;
-  }
-  router.navigate(['/auth/login']);
-  return false;
+  return toObservable(authService.currentUser$).pipe(
+    take(1), // Prendre seulement la première valeur
+    map(user => {
+      if (user) {
+        return true; // Accès autorisé
+      } else {
+        // Rediriger vers login avec l'URL de retour
+        router.navigate(['/auth/login'], {
+          queryParams: { returnUrl: state.url }
+        });
+        return false; // Accès refusé
+      }
+    })
+  );
 };
