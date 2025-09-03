@@ -1,8 +1,7 @@
-// src/app/shared/components/header/header.component.ts
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { RouterLink, Router } from '@angular/router';
 import { AuthService } from '../../../features/auth/services/auth';
-
+import { User } from '../../../features/auth/models/user.model';
 
 @Component({
   selector: 'app-header',
