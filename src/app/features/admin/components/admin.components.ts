@@ -234,13 +234,20 @@ export class AdminComponent implements OnInit {
   }
 
   async loadUsers() {
+
     try {
-      const users = await firstValueFrom(this.authService.getAllUsers());
-      this.users.set(users);
+      this.authService.getAllUsers().subscribe({
+      next: (users: User[]) => this.users.set(users),
+      error: (error: Error) =>
+      console.error('Erreur lors du chargement des utilisateurs:', error),
+    });
     } catch (error) {
-      console.error('Erreur lors du chargement des utilisateurs:', error);
+
+    console.error('Erreur lors du chargement des utilisateurs:', error);
+
     }
-  }
+
+}
 
   async loadTodos() {
     try {

@@ -11,7 +11,7 @@ export class AuthService {
   public currentUser$ = this.currentUser.asReadonly();
 
   // Mock data - utilisateurs de test
-  private users: User[] = [
+  private defaultUsers: User[] = [
     {
       id: 1,
       name: 'Admin User',
@@ -27,12 +27,18 @@ export class AuthService {
   ];
 
   // Mock data - mots de passe (en réalité, ils seraient hashés)
-  private passwords: Record<string, string> = {
+  private defaultPasswords: Record<string, string> = {
     'admin@example.com': 'admin123',
     'user@example.com': 'user123'
   };
 
+  private users: User[] = [];
+  private passwords: Record<string, string> = {};
+
   constructor() {
+
+    this.loadUsersFromStorage();
+
     // Vérifier s'il y a un utilisateur en session
     const savedUser = localStorage.getItem('currentUser');
     if (savedUser) {
@@ -71,6 +77,9 @@ export class AuthService {
     // Ajouter aux mock data
     this.users.push(newUser);
     this.passwords[userData.email] = userData.password;
+    console.warn('Registered users before:', this.users);
+    this.saveUsersToStorage();
+    console.warn('Registered users after:', this.users);
 
     // Simuler un délai réseau
     this.setCurrentUser(newUser); // Set the current user after successful registration
@@ -115,5 +124,34 @@ export class AuthService {
       return of(void 0).pipe(delay(300));
     }
     return throwError(() => new Error('Utilisateur non trouvé'));
+  }
+
+
+  private saveUsersToStorage(): void {
+    localStorage.setItem('users', JSON.stringify(this.users));
+    localStorage.setItem('usersPasswords', JSON.stringify(this.passwords));
+  }
+
+  private loadUsersFromStorage(): void {
+    const savedUsers = localStorage.getItem('users');
+    const savedPasswords = localStorage.getItem('usersPasswords');
+
+    if (savedUsers && savedPasswords) {
+      this.users = JSON.parse(savedUsers);
+      this.passwords = JSON.parse(savedPasswords);
+    } else{
+      // Si aucun utilisateur n'est sauvegardé, initialiser avec les utilisateurs par défaut
+      this.users = [...this.defaultUsers];
+      this.passwords = { ...this.defaultPasswords };
+      this.saveUsersToStorage();
+    }
+  }
+
+  private clearAllUsersData(): void {
+    localStorage.removeItem('users');
+    localStorage.removeItem('usersPasswords');
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('currentUser');
+    this.loadUsersFromStorage();
   }
 }
