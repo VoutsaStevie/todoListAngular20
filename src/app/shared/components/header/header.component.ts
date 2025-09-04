@@ -1,6 +1,6 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject} from '@angular/core';
 import { RouterLink, Router } from '@angular/router';
-import { AuthService } from '../../../features/auth/services/auth';
+import { AuthService } from '../../../features/auth/services/auth.service';
 import { User } from '../../../features/auth/models/user.model';
 
 @Component({
@@ -33,13 +33,7 @@ import { User } from '../../../features/auth/models/user.model';
 export class HeaderComponent {
   private authService = inject(AuthService);
   private router = inject(Router);
-
   currentUser = this.authService.currentUser$;
-
-  constructor() {
-    // Utiliser directement le signal du service
-    this.currentUser = this.authService.currentUser$;
-  }
 
   logout() {
     this.authService.logout();

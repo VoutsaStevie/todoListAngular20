@@ -1,6 +1,7 @@
 // src/app/features/auth/services/auth.service.ts
 import { Injectable, signal } from '@angular/core';
 import { Observable, of, throwError, delay } from 'rxjs';
+import { tap } from 'rxjs/operators';
 import { User, LoginRequest, RegisterRequest } from '../models/user.model';
 
 @Injectable({
@@ -8,7 +9,7 @@ import { User, LoginRequest, RegisterRequest } from '../models/user.model';
 })
 export class AuthService {
   private currentUser = signal<User | null>(null);
-  public currentUser$ = this.currentUser.asReadonly();
+  public readonly currentUser$ = this.currentUser.asReadonly();
 
   // Mock data - utilisateurs de test
   private defaultUsers: User[] = [
@@ -52,8 +53,11 @@ export class AuthService {
 
     if (user && password === credentials.password) {
       // Simuler un délai réseau
-      this.setCurrentUser(user); // Set the current user after successful login
-      return of(user).pipe(delay(500));
+      //this.setCurrentUser(user); // Set the current user after successful login
+      return of(user).pipe(
+        delay(500),
+        tap(loggedInUser => this.setCurrentUser(loggedInUser))
+      );
     } else {
       return throwError(() => new Error('Email ou mot de passe incorrect'));
     }
