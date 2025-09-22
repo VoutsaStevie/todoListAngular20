@@ -91,7 +91,7 @@ import { Todo } from '../models/todo.model';
           À faire
           <span class="text-sm text-gray-500">({{ todoService.pendingTodos().length }})</span>
         </h3>
-        <div class="space-y-3">
+        <div class="space-y-3 bg-yellow-50 p-2 rounded">
           @for (todo of todoService.pendingTodos(); track todo.id) {
             <div
               class="bg-white p-4 rounded-lg shadow-sm border-l-4 border-gray-400"
@@ -136,7 +136,7 @@ import { Todo } from '../models/todo.model';
           En cours
           <span class="text-sm text-gray-500">({{ todoService.inProgressTodos().length }})</span>
         </h3>
-        <div class="space-y-3">
+        <div class="space-y-3  bg-white-50 p-2 rounded">
           @for (todo of todoService.inProgressTodos(); track todo.id) {
             <div
               class="bg-white p-4 rounded-lg shadow-sm border-l-4 border-blue-400"
@@ -181,7 +181,7 @@ import { Todo } from '../models/todo.model';
           Terminé
           <span class="text-sm text-gray-500">({{ todoService.completedTodos().length }})</span>
         </h3>
-        <div class="space-y-3">
+        <div class="space-y-3  bg-green-50 p-2 rounded">
           @for (todo of todoService.completedTodos(); track todo.id) {
             <div
               class="bg-white p-4 rounded-lg shadow-sm border-l-4 border-green-400"
