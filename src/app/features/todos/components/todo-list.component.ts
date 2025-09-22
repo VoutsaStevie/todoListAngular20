@@ -1,6 +1,7 @@
 // src/app/features/todos/components/todo-list.component.ts
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { TodoService } from '../services/todo.service';
 import { PriorityPipe } from '../../../shared/pipes/priority.pipe';
 import { HighlightDirective } from '../../../shared/directives/highlight.directive';
@@ -8,8 +9,46 @@ import { HighlightDirective } from '../../../shared/directives/highlight.directi
 @Component({
   selector: 'app-todo-list',
   standalone: true,
-  imports: [CommonModule, PriorityPipe, HighlightDirective],
+  imports: [CommonModule, FormsModule, PriorityPipe, HighlightDirective],
   template: `
+    <!-- Formulaire d'ajout -->
+    <div class="mb-6 p-4 bg-white rounded-lg shadow">
+      <h2 class="text-lg font-semibold mb-4">Ajouter une tâche</h2>
+      <form (ngSubmit)="onAddTodo()" #todoForm="ngForm" class="flex flex-col md:flex-row gap-3">
+        <input
+          type="text"
+          [(ngModel)]="newTodoTitle"
+          name="title"
+          required
+          placeholder="Titre"
+          class="flex-1 px-3 py-2 border rounded-md"
+        />
+        <input
+          type="text"
+          [(ngModel)]="newTodoDescription"
+          name="description"
+          placeholder="Description"
+          class="flex-1 px-3 py-2 border rounded-md"
+        />
+        <select
+          [(ngModel)]="newTodoPriority"
+          name="priority"
+          class="px-3 py-2 border rounded-md"
+        >
+          <option value="low">Basse</option>
+          <option value="medium">Moyenne</option>
+          <option value="high">Haute</option>
+        </select>
+        <button
+          type="submit"
+          [disabled]="!todoForm.form.valid"
+          class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+        >
+          Ajouter
+        </button>
+      </form>
+    </div>
+
     <!-- Dashboard des statistiques -->
     <div class="mb-8">
       <h2 class="text-2xl font-bold text-gray-900 mb-4">Statistiques en temps réel</h2>
@@ -32,7 +71,9 @@ import { HighlightDirective } from '../../../shared/directives/highlight.directi
         </div>
         <div class="bg-white p-4 rounded-lg shadow">
           <h3 class="text-sm font-medium text-gray-500">Taux de complétion</h3>
-          <p class="text-2xl font-bold text-purple-600">{{ todoService.todoStats().completionRate | number:'1.0-0' }}%</p>
+          <p class="text-2xl font-bold text-purple-600">
+            {{ todoService.todoStats().completionRate | number:'1.0-0' }}%
+          </p>
         </div>
       </div>
     </div>
@@ -157,4 +198,19 @@ import { HighlightDirective } from '../../../shared/directives/highlight.directi
 })
 export class TodoListComponent {
   todoService = inject(TodoService);
+
+  // ✅ Ajout des variables pour le formulaire
+  newTodoTitle = '';
+  newTodoDescription = '';
+  newTodoPriority: 'low' | 'medium' | 'high' = 'medium';
+
+  async onAddTodo() {
+    if (!this.newTodoTitle.trim()) return;
+    await this.todoService.createTodo({
+      title: this.newTodoTitle,
+      description: this.newTodoDescription,
+      priority: 'medium',
+    });
+    this.newTodoTitle = '';
+  }
 }
