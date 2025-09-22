@@ -1,42 +1,31 @@
-import { Injectable, signal, computed } from '@angular/core';
+import { Injectable, signal, computed, effect } from '@angular/core';
 import { CreateTodoRequest, Todo } from '../models/todo.model';
 
 @Injectable({
   providedIn: 'root',
 })
 export class TodoService {
-  private todos = signal<Todo[]>([
-    {
-      id: 1,
-      title: 'Apprendre Angular',
-      description: 'Étudier les fondamentaux d\'Angular 20+',
-      status: 'todo',
-      priority: 'high',
-      createdBy: 1,
-      createdAt: new Date('2024-01-15'),
-      updatedAt: new Date('2024-01-15'),
-    },
-    {
-      id: 2,
-      title: 'Créer un projet',
-      description: 'Développer une application TodoList',
-      status: 'in-progress',
-      priority: 'medium',
-      createdBy: 1,
-      createdAt: new Date('2024-01-14'),
-      updatedAt: new Date('2024-01-16'),
-    },
-    {
-      id: 3,
-      title: 'Configurer l\'environnement',
-      description: 'Installer Node.js, Angular CLI et configurer VS Code',
-      status: 'done',
-      priority: 'high',
-      createdBy: 1,
-      createdAt: new Date('2024-01-13'),
-      updatedAt: new Date('2024-01-14'),
-    },
-  ]);
+  private currentUserId = 1;
+  private todos = signal<Todo[]>(this.loadTodos());
+
+  constructor() {
+    effect(() => {
+      this.saveTodos(this.todos());
+    });
+  }
+
+  private get storageKey() {
+    return `todos_user_${this.currentUserId}`;
+  }
+
+  private loadTodos() {
+    const saved = localStorage.getItem(this.storageKey);
+    return saved ? JSON.parse(saved) : [];
+  }
+
+  private saveTodos(todos: Todo[]) {
+    localStorage.setItem(this.storageKey, JSON.stringify(todos));
+  }
 
   public completedTodos = computed(() =>
     this.todos().filter(todo => todo.status === 'done')
