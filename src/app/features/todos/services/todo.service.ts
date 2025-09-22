@@ -1,32 +1,51 @@
-import { Injectable, signal, computed, effect } from '@angular/core';
+import { Injectable, signal, computed } from '@angular/core';
 import { CreateTodoRequest, Todo } from '../models/todo.model';
 
 @Injectable({
   providedIn: 'root',
 })
 export class TodoService {
-  private currentUserId = 1;
-  private todos = signal<Todo[]>(this.loadTodos());
+  private currentUserId!: number;
+  private todos = signal<Todo[]>([]);
 
   constructor() {
-    effect(() => {
-      this.saveTodos(this.todos());
-    });
+  const savedUserId = localStorage.getItem('currentUserId');
+  if (savedUserId) {
+    this.currentUserId = Number(savedUserId);
+    // ⚡ Charger les todos de l'utilisateur directement
+    this.todos.set(this.loadTodos(this.currentUserId));
+  } else {
+    // Optionnel : définir un utilisateur par défaut si aucun n'est connecté
+    this.currentUserId = 1;
+    this.todos.set(this.loadTodos(this.currentUserId));
+  }
+}
+
+  // Définir l'utilisateur courant
+  setCurrentUser(userId: number) {
+    this.currentUserId = userId;
+    localStorage.setItem('currentUserId', String(userId));
+    this.todos.set(this.loadTodos(userId));
   }
 
-  private get storageKey() {
-    return `todos_user_${this.currentUserId}`;
+  // Générer la clé unique pour chaque utilisateur
+  private storageKey(userId: number) {
+    return `todos_user_${userId}`;
   }
 
-  private loadTodos() {
-    const saved = localStorage.getItem(this.storageKey);
+  // Charger les todos d'un utilisateur
+  private loadTodos(userId: number): Todo[] {
+    const saved = localStorage.getItem(this.storageKey(userId));
     return saved ? JSON.parse(saved) : [];
   }
 
-  private saveTodos(todos: Todo[]) {
-    localStorage.setItem(this.storageKey, JSON.stringify(todos));
+  // Sauvegarder les todos de l'utilisateur courant
+  private saveTodos() {
+    if (!this.currentUserId) return;
+    localStorage.setItem(this.storageKey(this.currentUserId), JSON.stringify(this.todos()));
   }
 
+  // Computed properties
   public completedTodos = computed(() =>
     this.todos().filter(todo => todo.status === 'done')
   );
@@ -54,33 +73,24 @@ export class TodoService {
       : 0
   }));
 
-  // Simuler un délai réseau
   private delay(ms: number): Promise<void> {
-    return new Promise((resolve) => setTimeout(resolve, ms));
+    return new Promise(resolve => setTimeout(resolve, ms));
   }
 
-  // GET - Récupérer tous les todos
+  // GET
   async getAllTodos(): Promise<Todo[]> {
-    console.warn('🔄 Service: Récupération de tous les todos...');
-    await this.delay(300); // Simuler un appel API
-    console.warn('✅ Service: Todos récupérés avec succès');
+    await this.delay(100);
     return this.todos();
   }
 
-  // GET - Récupérer un todo par ID
   async getTodoById(id: number): Promise<Todo | undefined> {
-    console.warn(`🔄 Service: Récupération du todo ${id}...`);
-    await this.delay(200);
-    const todo = this.todos().find((t) => t.id === id);
-    console.warn(`✅ Service: Todo ${id} récupéré:`, todo);
-    return todo;
+    await this.delay(50);
+    return this.todos().find(t => t.id === id);
   }
 
-  // POST - Créer un nouveau todo
+  // POST
   async createTodo(todoData: CreateTodoRequest): Promise<Todo> {
-      console.warn('🔄 Service: Création d\'un nouveau todo...', todoData);
-    await this.delay(400);
-
+    await this.delay(100);
     const newTodo: Todo = {
       id: Date.now(),
       title: todoData.title,
@@ -88,63 +98,52 @@ export class TodoService {
       status: 'todo',
       priority: todoData.priority,
       assignedTo: todoData.assignedTo,
-      createdBy: 1, // TODO: Récupérer l'ID de l'utilisateur connecté
+      createdBy: this.currentUserId,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
 
-    this.todos.update((todos) => [...todos, newTodo]);
-    console.log('✅ Service: Todo créé avec succès:', newTodo);
+    this.todos.update(todos => [...todos, newTodo]);
+    this.saveTodos();
     return newTodo;
   }
 
-  // PUT - Mettre à jour un todo
+  // PUT
   async updateTodo(id: number, updates: Partial<Todo>): Promise<Todo | undefined> {
-    console.log(`🔄 Service: Mise à jour du todo ${id}...`, updates);
-    await this.delay(300);
-
+    await this.delay(50);
     let updatedTodo: Todo | undefined;
-    this.todos.update((todos) =>
-      todos.map((todo) => {
+    this.todos.update(todos =>
+      todos.map(todo => {
         if (todo.id === id) {
-          updatedTodo = {
-            ...todo,
-            ...updates,
-            updatedAt: new Date(),
-          };
+          updatedTodo = { ...todo, ...updates, updatedAt: new Date() };
           return updatedTodo;
         }
         return todo;
-      }),
+      })
     );
-
-    console.log(`✅ Service: Todo ${id} mis à jour:`, updatedTodo);
+    this.saveTodos();
     return updatedTodo;
   }
 
-  // DELETE - Supprimer un todo
+  // DELETE
   async deleteTodo(id: number): Promise<boolean> {
-    console.log(`🔄 Service: Suppression du todo ${id}...`);
-    await this.delay(250);
-
+    await this.delay(50);
     let deleted = false;
-    this.todos.update((todos) => {
-      const initialLength = todos.length;
-      const filtered = todos.filter((todo) => todo.id !== id);
-      deleted = filtered.length < initialLength;
+    this.todos.update(todos => {
+      const filtered = todos.filter(todo => todo.id !== id);
+      deleted = filtered.length < todos.length;
       return filtered;
     });
-
-    console.log(`✅ Service: Todo ${id} supprimé:`, deleted);
+    this.saveTodos();
     return deleted;
   }
 
-  // Méthodes utilitaires
+  // Filtres utils
   getTodosByStatus(status: Todo['status']): Todo[] {
-    return this.todos().filter((todo) => todo.status === status);
+    return this.todos().filter(todo => todo.status === status);
   }
 
   getTodosByPriority(priority: Todo['priority']): Todo[] {
-    return this.todos().filter((todo) => todo.priority === priority);
+    return this.todos().filter(todo => todo.priority === priority);
   }
 }
