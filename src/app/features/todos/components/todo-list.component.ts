@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { TodoService } from '../services/todo.service';
 import { PriorityPipe } from '../../../shared/pipes/priority.pipe';
 import { HighlightDirective } from '../../../shared/directives/highlight.directive';
+import { Todo } from '../models/todo.model';
 
 @Component({
   selector: 'app-todo-list',
@@ -81,7 +82,11 @@ import { HighlightDirective } from '../../../shared/directives/highlight.directi
     <!-- Colonnes Kanban -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
       <!-- À faire -->
-      <div class="bg-gray-50 rounded-lg p-4">
+      <div
+        class="bg-gray-50 rounded-lg p-4 max-h-[600px] overflow-y-auto"
+        (dragover)="onDragOver($event)"
+        (drop)="onDrop($event, 'todo')"
+      >
         <h3 class="text-lg font-semibold text-gray-900 mb-4">
           À faire
           <span class="text-sm text-gray-500">({{ todoService.pendingTodos().length }})</span>
@@ -90,6 +95,9 @@ import { HighlightDirective } from '../../../shared/directives/highlight.directi
           @for (todo of todoService.pendingTodos(); track todo.id) {
             <div
               class="bg-white p-4 rounded-lg shadow-sm border-l-4 border-gray-400"
+              draggable="true"
+              (dragstart)="onDragStart($event, todo)"
+              (dragend)="onDragEnd($event)"
               [appHighlight]="todo.priority === 'high' ? 'rgba(239, 68, 68, 0.1)' : 'transparent'"
               [appHighlightDelay]="todo.priority === 'high' ? 500 : 0"
             >
@@ -119,7 +127,11 @@ import { HighlightDirective } from '../../../shared/directives/highlight.directi
       </div>
 
       <!-- En cours -->
-      <div class="bg-gray-50 rounded-lg p-4">
+      <div
+        class="bg-gray-50 rounded-lg p-4 max-h-[600px] overflow-y-auto"
+        (dragover)="onDragOver($event)"
+        (drop)="onDrop($event, 'in-progress')"
+      >
         <h3 class="text-lg font-semibold text-gray-900 mb-4">
           En cours
           <span class="text-sm text-gray-500">({{ todoService.inProgressTodos().length }})</span>
@@ -128,6 +140,9 @@ import { HighlightDirective } from '../../../shared/directives/highlight.directi
           @for (todo of todoService.inProgressTodos(); track todo.id) {
             <div
               class="bg-white p-4 rounded-lg shadow-sm border-l-4 border-blue-400"
+              draggable="true"
+              (dragstart)="onDragStart($event, todo)"
+              (dragend)="onDragEnd($event)"
               [appHighlight]="todo.priority === 'high' ? 'rgba(239, 68, 68, 0.1)' : 'transparent'"
               [appHighlightDelay]="todo.priority === 'high' ? 500 : 0"
             >
@@ -157,7 +172,11 @@ import { HighlightDirective } from '../../../shared/directives/highlight.directi
       </div>
 
       <!-- Terminé -->
-      <div class="bg-gray-50 rounded-lg p-4">
+      <div
+        class="bg-gray-50 rounded-lg p-4 max-h-[600px] overflow-y-auto"
+        (dragover)="onDragOver($event)"
+        (drop)="onDrop($event, 'done')"
+      >
         <h3 class="text-lg font-semibold text-gray-900 mb-4">
           Terminé
           <span class="text-sm text-gray-500">({{ todoService.completedTodos().length }})</span>
@@ -166,6 +185,9 @@ import { HighlightDirective } from '../../../shared/directives/highlight.directi
           @for (todo of todoService.completedTodos(); track todo.id) {
             <div
               class="bg-white p-4 rounded-lg shadow-sm border-l-4 border-green-400"
+              draggable="true"
+              (dragstart)="onDragStart($event, todo)"
+              (dragend)="onDragEnd($event)"
               [appHighlight]="todo.priority === 'high' ? 'rgba(34, 197, 94, 0.1)' : 'transparent'"
               [appHighlightDelay]="todo.priority === 'high' ? 500 : 0"
             >
@@ -199,18 +221,41 @@ import { HighlightDirective } from '../../../shared/directives/highlight.directi
 export class TodoListComponent {
   todoService = inject(TodoService);
 
-  // ✅ Ajout des variables pour le formulaire
   newTodoTitle = '';
   newTodoDescription = '';
   newTodoPriority: 'low' | 'medium' | 'high' = 'medium';
+
+  draggedTodo: Todo | null = null;
 
   async onAddTodo() {
     if (!this.newTodoTitle.trim()) return;
     await this.todoService.createTodo({
       title: this.newTodoTitle,
       description: this.newTodoDescription,
-      priority: 'medium',
+      priority: this.newTodoPriority,
     });
     this.newTodoTitle = '';
+    this.newTodoDescription = '';
+    this.newTodoPriority = 'medium';
+  }
+
+  onDragStart(event: DragEvent, todo: Todo) {
+    this.draggedTodo = todo;
+    event.dataTransfer?.setData('text/plain', todo.id.toString());
+  }
+
+  onDragEnd(event: DragEvent) {
+    this.draggedTodo = null;
+  }
+
+  async onDrop(event: DragEvent, newStatus: Todo['status']) {
+    event.preventDefault();
+    if (!this.draggedTodo) return;
+    await this.todoService.updateTodo(this.draggedTodo.id, { status: newStatus });
+    this.draggedTodo = null;
+  }
+
+  onDragOver(event: DragEvent) {
+    event.preventDefault();
   }
 }
