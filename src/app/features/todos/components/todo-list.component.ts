@@ -82,135 +82,138 @@ import { Todo } from '../models/todo.model';
     <!-- Colonnes Kanban -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
       <!-- À faire -->
-      <div
-        class="bg-gray-50 rounded-lg p-4 max-h-[600px] overflow-y-auto"
-        (dragover)="onDragOver($event)"
-        (drop)="onDrop($event, 'todo')"
-      >
+      <div class="bg-gray-50 rounded-lg p-4 max-h-[600px] overflow-y-auto"
+           (dragover)="onDragOver($event)" (drop)="onDrop($event, 'todo')">
         <h3 class="text-lg font-semibold text-gray-900 mb-4">
           À faire
           <span class="text-sm text-gray-500">({{ todoService.pendingTodos().length }})</span>
         </h3>
-        <div class="space-y-3 bg-yellow-50 p-2 rounded">
+        <div class="space-y-3  bg-red-50 p-2 rounded">
           @for (todo of todoService.pendingTodos(); track todo.id) {
-            <div
-              class="bg-white p-4 rounded-lg shadow-sm border-l-4 border-gray-400"
-              draggable="true"
-              (dragstart)="onDragStart($event, todo)"
-              (dragend)="onDragEnd($event)"
-              [appHighlight]="todo.priority === 'high' ? 'rgba(239, 68, 68, 0.1)' : 'transparent'"
-              [appHighlightDelay]="todo.priority === 'high' ? 500 : 0"
-            >
-              <div class="flex justify-between items-start mb-2">
-                <h4 class="font-medium text-gray-900">{{ todo.title }}</h4>
-                <span
-                  class="px-2 py-1 text-xs font-semibold rounded-full"
-                  [class.bg-red-100]="todo.priority === 'high'"
-                  [class.text-red-800]="todo.priority === 'high'"
-                  [class.bg-yellow-100]="todo.priority === 'medium'"
-                  [class.text-yellow-800]="todo.priority === 'medium'"
-                  [class.bg-green-100]="todo.priority === 'low'"
-                  [class.text-green-800]="todo.priority === 'low'"
-                >
-                  {{ todo.priority | priority }}
-                </span>
+            <div class="bg-white p-4 rounded-lg shadow-sm border-l-4 border-gray-400 flex justify-between items-start"
+                 draggable="true"
+                 (dragstart)="onDragStart($event, todo)"
+                 (dragend)="onDragEnd($event)"
+                 [appHighlight]="todo.priority === 'high' ? 'rgba(239, 68, 68, 0.1)' : 'transparent'"
+                 [appHighlightDelay]="todo.priority === 'high' ? 500 : 0">
+              <div>
+                <div class="flex justify-between items-start mb-2">
+                  <h4 class="font-medium text-gray-900">{{ todo.title }}</h4>
+                  <span
+                    class="px-2 py-1 text-xs font-semibold rounded-full"
+                    [class.bg-red-100]="todo.priority === 'high'"
+                    [class.text-red-800]="todo.priority === 'high'"
+                    [class.bg-yellow-100]="todo.priority === 'medium'"
+                    [class.text-yellow-800]="todo.priority === 'medium'"
+                    [class.bg-green-100]="todo.priority === 'low'"
+                    [class.text-green-800]="todo.priority === 'low'"
+                  >
+                    {{ todo.priority | priority }}
+                  </span>
+                </div>
+                @if (todo.description) {
+                  <p class="text-sm text-gray-600 mb-3">{{ todo.description }}</p>
+                }
+                <div class="flex justify-between items-center text-xs text-gray-500">
+                  <span>Créé le {{ todo.createdAt | date:'dd/MM/yyyy' }}</span>
+                </div>
               </div>
-              @if (todo.description) {
-                <p class="text-sm text-gray-600 mb-3">{{ todo.description }}</p>
-              }
-              <div class="flex justify-between items-center text-xs text-gray-500">
-                <span>Créé le {{ todo.createdAt | date:'dd/MM/yyyy' }}</span>
-              </div>
+              <!-- Icône corbeille -->
+              <button (click)="onDeleteTodo(todo)" class="ml-2 text-red-600 hover:text-red-800">
+                🗑️
+              </button>
             </div>
           }
         </div>
       </div>
 
       <!-- En cours -->
-      <div
-        class="bg-gray-50 rounded-lg p-4 max-h-[600px] overflow-y-auto"
-        (dragover)="onDragOver($event)"
-        (drop)="onDrop($event, 'in-progress')"
-      >
+      <div class="bg-gray-50 rounded-lg p-4 max-h-[600px] overflow-y-auto"
+           (dragover)="onDragOver($event)" (drop)="onDrop($event, 'in-progress')">
         <h3 class="text-lg font-semibold text-gray-900 mb-4">
           En cours
           <span class="text-sm text-gray-500">({{ todoService.inProgressTodos().length }})</span>
         </h3>
-        <div class="space-y-3  bg-white-50 p-2 rounded">
+        <div class="space-y-3  bg-blue-50 p-2 rounded">
           @for (todo of todoService.inProgressTodos(); track todo.id) {
-            <div
-              class="bg-white p-4 rounded-lg shadow-sm border-l-4 border-blue-400"
-              draggable="true"
-              (dragstart)="onDragStart($event, todo)"
-              (dragend)="onDragEnd($event)"
-              [appHighlight]="todo.priority === 'high' ? 'rgba(239, 68, 68, 0.1)' : 'transparent'"
-              [appHighlightDelay]="todo.priority === 'high' ? 500 : 0"
-            >
-              <div class="flex justify-between items-start mb-2">
-                <h4 class="font-medium text-gray-900">{{ todo.title }}</h4>
-                <span
-                  class="px-2 py-1 text-xs font-semibold rounded-full"
-                  [class.bg-red-100]="todo.priority === 'high'"
-                  [class.text-red-800]="todo.priority === 'high'"
-                  [class.bg-yellow-100]="todo.priority === 'medium'"
-                  [class.text-yellow-800]="todo.priority === 'medium'"
-                  [class.bg-green-100]="todo.priority === 'low'"
-                  [class.text-green-800]="todo.priority === 'low'"
-                >
-                  {{ todo.priority | priority }}
-                </span>
+            <div class="bg-white p-4 rounded-lg shadow-sm border-l-4 border-blue-400 flex justify-between items-start"
+                 draggable="true"
+                 (dragstart)="onDragStart($event, todo)"
+                 (dragend)="onDragEnd($event)"
+                 [appHighlight]="todo.priority === 'high' ? 'rgba(239, 68, 68, 0.1)' : 'transparent'"
+                 [appHighlightDelay]="todo.priority === 'high' ? 500 : 0">
+              <div>
+                <div class="flex justify-between items-start mb-2">
+                  <h4 class="font-medium text-gray-900">{{ todo.title }}</h4>
+                  <span
+                    class="px-2 py-1 text-xs font-semibold rounded-full"
+                    [class.bg-red-100]="todo.priority === 'high'"
+                    [class.text-red-800]="todo.priority === 'high'"
+                    [class.bg-yellow-100]="todo.priority === 'medium'"
+                    [class.text-yellow-800]="todo.priority === 'medium'"
+                    [class.bg-green-100]="todo.priority === 'low'"
+                    [class.text-green-800]="todo.priority === 'low'"
+                  >
+                    {{ todo.priority | priority }}
+                  </span>
+                </div>
+                @if (todo.description) {
+                  <p class="text-sm text-gray-600 mb-3">{{ todo.description }}</p>
+                }
+                <div class="flex justify-between items-center text-xs text-gray-500">
+                  <span>Mis à jour le {{ todo.updatedAt | date:'dd/MM/yyyy' }}</span>
+                </div>
               </div>
-              @if (todo.description) {
-                <p class="text-sm text-gray-600 mb-3">{{ todo.description }}</p>
-              }
-              <div class="flex justify-between items-center text-xs text-gray-500">
-                <span>Mis à jour le {{ todo.updatedAt | date:'dd/MM/yyyy' }}</span>
-              </div>
+              <!-- Icône corbeille -->
+              <button (click)="onDeleteTodo(todo)" class="ml-2 text-red-600 hover:text-red-800">
+                🗑️
+              </button>
             </div>
           }
         </div>
       </div>
 
       <!-- Terminé -->
-      <div
-        class="bg-gray-50 rounded-lg p-4 max-h-[600px] overflow-y-auto"
-        (dragover)="onDragOver($event)"
-        (drop)="onDrop($event, 'done')"
-      >
+      <div class="bg-gray-50 rounded-lg p-4 max-h-[600px] overflow-y-auto"
+           (dragover)="onDragOver($event)" (drop)="onDrop($event, 'done')">
         <h3 class="text-lg font-semibold text-gray-900 mb-4">
           Terminé
           <span class="text-sm text-gray-500">({{ todoService.completedTodos().length }})</span>
         </h3>
         <div class="space-y-3  bg-green-50 p-2 rounded">
           @for (todo of todoService.completedTodos(); track todo.id) {
-            <div
-              class="bg-white p-4 rounded-lg shadow-sm border-l-4 border-green-400"
-              draggable="true"
-              (dragstart)="onDragStart($event, todo)"
-              (dragend)="onDragEnd($event)"
-              [appHighlight]="todo.priority === 'high' ? 'rgba(34, 197, 94, 0.1)' : 'transparent'"
-              [appHighlightDelay]="todo.priority === 'high' ? 500 : 0"
-            >
-              <div class="flex justify-between items-start mb-2">
-                <h4 class="font-medium text-gray-900 line-through">{{ todo.title }}</h4>
-                <span
-                  class="px-2 py-1 text-xs font-semibold rounded-full"
-                  [class.bg-red-100]="todo.priority === 'high'"
-                  [class.text-red-800]="todo.priority === 'high'"
-                  [class.bg-yellow-100]="todo.priority === 'medium'"
-                  [class.text-yellow-800]="todo.priority === 'medium'"
-                  [class.bg-green-100]="todo.priority === 'low'"
-                  [class.text-green-800]="todo.priority === 'low'"
-                >
-                  {{ todo.priority | priority }}
-                </span>
+            <div class="bg-white p-4 rounded-lg shadow-sm border-l-4 border-green-400 flex justify-between items-start"
+                 draggable="true"
+                 (dragstart)="onDragStart($event, todo)"
+                 (dragend)="onDragEnd($event)"
+                 [appHighlight]="todo.priority === 'high' ? 'rgba(34, 197, 94, 0.1)' : 'transparent'"
+                 [appHighlightDelay]="todo.priority === 'high' ? 500 : 0">
+              <div>
+                <div class="flex justify-between items-start mb-2">
+                  <h4 class="font-medium text-gray-900 line-through">{{ todo.title }}</h4>
+                  <span
+                    class="px-2 py-1 text-xs font-semibold rounded-full"
+                    [class.bg-red-100]="todo.priority === 'high'"
+                    [class.text-red-800]="todo.priority === 'high'"
+                    [class.bg-yellow-100]="todo.priority === 'medium'"
+                    [class.text-yellow-800]="todo.priority === 'medium'"
+                    [class.bg-green-100]="todo.priority === 'low'"
+                    [class.text-green-800]="todo.priority === 'low'"
+                  >
+                    {{ todo.priority | priority }}
+                  </span>
+                </div>
+                @if (todo.description) {
+                  <p class="text-sm text-gray-600 mb-3 line-through">{{ todo.description }}</p>
+                }
+                <div class="flex justify-between items-center text-xs text-gray-500">
+                  <span>Terminé le {{ todo.updatedAt | date:'dd/MM/yyyy' }}</span>
+                </div>
               </div>
-              @if (todo.description) {
-                <p class="text-sm text-gray-600 mb-3 line-through">{{ todo.description }}</p>
-              }
-              <div class="flex justify-between items-center text-xs text-gray-500">
-                <span>Terminé le {{ todo.updatedAt | date:'dd/MM/yyyy' }}</span>
-              </div>
+              <!-- Icône corbeille -->
+              <button (click)="onDeleteTodo(todo)" class="ml-2 text-red-600 hover:text-red-800">
+                🗑️
+              </button>
             </div>
           }
         </div>
@@ -257,5 +260,12 @@ export class TodoListComponent {
 
   onDragOver(event: DragEvent) {
     event.preventDefault();
+  }
+
+  // 🔴 Nouvelle fonction pour supprimer une todo
+  async onDeleteTodo(todo: Todo) {
+    if (confirm('Voulez-vous vraiment supprimer cette tâche ?')) {
+      await this.todoService.deleteTodo(todo.id);
+    }
   }
 }
